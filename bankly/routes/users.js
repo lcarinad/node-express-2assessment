@@ -1,10 +1,10 @@
 /** User related routes. */
 
-const User = require('../models/user');
-const express = require('express');
+const User = require("../models/user");
+const express = require("express");
 const router = new express.Router();
-const ExpressError = require('../helpers/expressError');
-const { authUser, requireLogin, requireAdmin } = require('../middleware/auth');
+const ExpressError = require("../helpers/expressError");
+const { requireLogin, requireAdmin } = require("../middleware/auth");
 
 /** GET /
  *
@@ -15,7 +15,7 @@ const { authUser, requireLogin, requireAdmin } = require('../middleware/auth');
  *
  */
 
-router.get('/', authUser, requireLogin, async function(req, res, next) {
+router.get("/", requireLogin, async function (req, res, next) {
   try {
     let users = await User.getAll();
     return res.json({ users });
@@ -35,11 +35,7 @@ router.get('/', authUser, requireLogin, async function(req, res, next) {
  *
  */
 
-router.get('/:username', authUser, requireLogin, async function(
-  req,
-  res,
-  next
-) {
+router.get("/:username", requireLogin, async function (req, res, next) {
   try {
     let user = await User.get(req.params.username);
     return res.json({ user });
@@ -63,26 +59,30 @@ router.get('/:username', authUser, requireLogin, async function(
  *
  */
 
-router.patch('/:username', authUser, requireLogin, requireAdmin, async function(
-  req,
-  res,
-  next
-) {
-  try {
-    if (!req.curr_admin && req.curr_username !== req.params.username) {
-      throw new ExpressError('Only  that user or admin can edit a user.', 401);
+router.patch(
+  "/:username",
+  requireLogin,
+  requireAdmin,
+  async function (req, res, next) {
+    try {
+      if (!req.curr_admin && req.curr_username !== req.params.username) {
+        throw new ExpressError(
+          "Only  that user or admin can edit a user.",
+          401
+        );
+      }
+
+      // get fields to change; remove token so we don't try to change it
+      let fields = { ...req.body };
+      delete fields._token;
+
+      let user = await User.update(req.params.username, fields);
+      return res.json({ user });
+    } catch (err) {
+      return next(err);
     }
-
-    // get fields to change; remove token so we don't try to change it
-    let fields = { ...req.body };
-    delete fields._token;
-
-    let user = await User.update(req.params.username, fields);
-    return res.json({ user });
-  } catch (err) {
-    return next(err);
   }
-}); // end
+); // end
 
 /** DELETE /[username]
  *
@@ -94,14 +94,10 @@ router.patch('/:username', authUser, requireLogin, requireAdmin, async function(
  * If user cannot be found, return a 404 err.
  */
 
-router.delete('/:username', authUser, requireAdmin, async function(
-  req,
-  res,
-  next
-) {
+router.delete("/:username", requireAdmin, async function (req, res, next) {
   try {
     User.delete(req.params.username);
-    return res.json({ message: 'deleted' });
+    return res.json({ message: "deleted" });
   } catch (err) {
     return next(err);
   }
