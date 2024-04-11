@@ -40,7 +40,7 @@ class User {
     );
 
     return result.rows[0];
-  }
+  } //FIX BUG #1
 
   /** Is this username + password combo correct?
    *
@@ -50,17 +50,11 @@ class User {
 
   static async authenticate(username, password) {
     const result = await db.query(
-      `SELECT username,
-                password,
-                first_name,
-                last_name,
-                email,
-                phone,
-                admin
+      `SELECT password
             FROM users 
             WHERE username = $1`,
       [username]
-    );
+    ); //FIXES BUG (removed unnecessary columns from select statement)
 
     const user = result.rows[0];
 
@@ -86,7 +80,7 @@ class User {
             ORDER BY username`
     );
     return result.rows;
-  }
+  } //FIXES BUG #4
 
   /** Returns user info: {username, first_name, last_name, email, phone}
    *
@@ -109,7 +103,7 @@ class User {
     const user = result.rows[0];
 
     if (!user) {
-      new ExpressError("No such user", 404);
+      throw new ExpressError("No such user", 404); //FIXES BUG #5
     }
 
     return user;
@@ -137,7 +131,7 @@ class User {
     if (!user) {
       throw new ExpressError("No such user", 404);
     }
-
+    delete user.password; //FIXES BUG #6
     return user;
   }
 

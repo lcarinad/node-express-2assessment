@@ -96,8 +96,8 @@ router.patch(
 
 router.delete("/:username", requireAdmin, async function (req, res, next) {
   try {
-    User.delete(req.params.username);
-    return res.json({ message: "deleted" });
+    let user = await User.delete(req.params.username);
+    if (user) return res.json({ message: "deleted" }); //FIXES BUG #7
   } catch (err) {
     return next(err);
   }

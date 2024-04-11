@@ -105,7 +105,7 @@ describe("GET /users", function () {
         { username: "u3", first_name: "fn3", last_name: "ln3" },
       ],
     });
-  });
+  }); //TESTS BUG #4
 });
 
 describe("GET /users/[username]", function () {
@@ -126,6 +126,13 @@ describe("GET /users/[username]", function () {
       email: "email1",
       phone: "phone1",
     });
+  });
+
+  test("should return 404 status code if user is not found", async function () {
+    const response = await request(app)
+      .get("/users/u909302480")
+      .send({ _token: tokens.u1 });
+    expect(response.statusCode).toBe(404); //TESTS BUG #5
   });
 });
 
@@ -154,8 +161,7 @@ describe("PATCH /users/[username]", function () {
       email: "email1",
       phone: "phone1",
       admin: false,
-      password: expect.any(String),
-    });
+    }); //TESTS BUG #6
   });
 
   test("should disallowing patching not-allowed-fields", async function () {
@@ -193,6 +199,12 @@ describe("DELETE /users/[username]", function () {
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ message: "deleted" });
   });
+  test("should return 404 if cannot find", async function () {
+    const response = await request(app)
+      .delete("/users/not-a-user")
+      .send({ _token: tokens.u3 });
+    expect(response.statusCode).toBe(404);
+  }); //TESTS BUG #7
 });
 
 afterEach(async function () {
